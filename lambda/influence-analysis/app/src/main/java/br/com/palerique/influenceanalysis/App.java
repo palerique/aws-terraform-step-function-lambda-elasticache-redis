@@ -4,11 +4,12 @@
 package br.com.palerique.influenceanalysis;
 
 public class Lambda {
-    public String getGreeting() {
-        return "Hello World!";
-    }
 
     public static void main(String[] args) {
         System.out.println(new Lambda().getGreeting());
+    }
+
+    public String getGreeting() {
+        return "Hello World!";
     }
 }

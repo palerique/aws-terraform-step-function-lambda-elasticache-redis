@@ -4,10 +4,13 @@
 package br.com.palerique.influenceanalysis;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AppTest {
-    @Test void appHasAGreeting() {
+
+    @Test
+    void appHasAGreeting() {
         Lambda classUnderTest = new Lambda();
         assertNotNull(classUnderTest.getGreeting(), "lambda should have a greeting");
     }
