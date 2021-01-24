@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'influence-analysis'
-include('lambda')
+include('lambda', 'layer')
