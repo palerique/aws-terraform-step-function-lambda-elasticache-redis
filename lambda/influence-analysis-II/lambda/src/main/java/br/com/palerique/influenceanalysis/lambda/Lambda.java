@@ -1,16 +1,58 @@
 package br.com.palerique.influenceanalysis.lambda;
 
-import static br.com.palerique.influenceanalysis.lambda.MessageUtils.getMessage;
-import static br.com.palerique.influenceanalysis.layer.StringUtils.join;
-import static br.com.palerique.influenceanalysis.layer.StringUtils.split;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.lambda.LambdaAsyncClient;
+import software.amazon.awssdk.services.lambda.model.GetAccountSettingsRequest;
+import software.amazon.awssdk.services.lambda.model.GetAccountSettingsResponse;
 
-import java.util.List;
+public class Lambda implements RequestHandler<SQSEvent, String> {
 
-public class Lambda {
+    private static final Logger logger = LoggerFactory.getLogger(Lambda.class);
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final LambdaAsyncClient lambdaClient = LambdaAsyncClient.create();
 
-    public static void main(String[] args) {
-        List<String> tokens = split(getMessage());
-        String result = join(tokens);
-        System.out.println(result);
+    public Lambda() {
+        CompletableFuture<GetAccountSettingsResponse> accountSettings =
+                lambdaClient.getAccountSettings(GetAccountSettingsRequest.builder().build());
+        try {
+            GetAccountSettingsResponse settings = accountSettings.get();
+            logger.info(String.valueOf(settings));
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
+    }
+
+    @Override
+    public String handleRequest(SQSEvent event, Context context) {
+        String response = "";
+        // call Lambda API
+        logger.info("Getting account settings");
+        CompletableFuture<GetAccountSettingsResponse> accountSettings =
+                lambdaClient.getAccountSettings(GetAccountSettingsRequest.builder().build());
+        // log execution details
+        logger.info("ENVIRONMENT VARIABLES: {}", gson.toJson(System.getenv()));
+        logger.info("CONTEXT: {}", gson.toJson(context));
+        logger.info("EVENT: {}", gson.toJson(event));
+        // process event
+        for (SQSMessage msg : event.getRecords()) {
+            logger.info(msg.getBody());
+        }
+        // process Lambda API response
+        try {
+            GetAccountSettingsResponse settings = accountSettings.get();
+            response = gson.toJson(settings.accountUsage());
+            logger.info("Account usage: {}", response);
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
+        return response;
     }
 }
