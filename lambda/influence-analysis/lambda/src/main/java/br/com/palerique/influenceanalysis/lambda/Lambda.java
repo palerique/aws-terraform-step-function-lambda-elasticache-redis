@@ -53,6 +53,12 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
         } catch (Exception e) {
             e.getStackTrace();
         }
+
+        //TODO: testing JEDIS redis client:
+        Jedis jedis = new Jedis("localhost");
+        jedis.set("foo", "bar");
+        String value = jedis.get("foo");
+
         return response;
     }
 }
