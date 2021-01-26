@@ -47,7 +47,7 @@ public class InvokeTest {
     private static String loadJsonFile(String path) {
         StringBuilder stringBuilder = new StringBuilder();
         try (Stream<String> stream = Files.lines(Paths.get(path), StandardCharsets.UTF_8)) {
-            stream.forEach(s -> stringBuilder.append(s));
+            stream.forEach(stringBuilder::append);
         } catch (IOException e) {
             e.printStackTrace();
         }

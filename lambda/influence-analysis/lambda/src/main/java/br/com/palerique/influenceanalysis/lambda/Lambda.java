@@ -9,12 +9,22 @@ import com.google.gson.GsonBuilder;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient;
 import software.amazon.awssdk.services.lambda.model.GetAccountSettingsRequest;
 import software.amazon.awssdk.services.lambda.model.GetAccountSettingsResponse;
 
 public class Lambda implements RequestHandler<SQSEvent, String> {
 
+    public static final String VALUE = "{\n"
+            + "    \"numberOfViews\": 2,\n"
+            + "    \"totalJiveUsers\": 17,\n"
+            + "    \"shareCount\": 0,\n"
+            + "    \"commentCount\": 0,\n"
+            + "    \"likeCount\": 0,\n"
+            + "    \"influenceScore\": 0.058823529411764705\n"
+            + "}";
+    public static final String KEY = "foo";
     private static final Logger logger = LoggerFactory.getLogger(Lambda.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final LambdaAsyncClient lambdaClient = LambdaAsyncClient.create();
@@ -55,10 +65,11 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
         }
 
         //TODO: testing JEDIS redis client:
-        Jedis jedis = new Jedis("localhost");
-        jedis.set("foo", "bar");
-        String value = jedis.get("foo");
-
+        Jedis jedis = new Jedis("localhost", 6379);
+        jedis.auth("Redis2019!");
+        jedis.set(KEY, VALUE);
+        String value = jedis.get(KEY);
+        System.out.println(value);
         return response;
     }
 }
