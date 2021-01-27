@@ -26,6 +26,10 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
             + "    \"influenceScore\": 0.058823529411764705\n"
             + "}";
     public static final String KEY = "foo";
+    /**
+     * Params with TTL (Time To Live/expiration) set
+     */
+    public static final SetParams PARAMS = SetParams.setParams().ex(10);
     private static final Logger logger = LoggerFactory.getLogger(Lambda.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final LambdaAsyncClient lambdaClient = LambdaAsyncClient.create();
@@ -68,9 +72,20 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
         //TODO: testing JEDIS redis client:
         Jedis jedis = new Jedis("localhost", 6379);
         jedis.auth("Redis2019!");
-        jedis.set(KEY, VALUE, SetParams.setParams().ex(10));
+        getAndPrint(jedis);
+        jedis.set(KEY, VALUE, PARAMS);
+        getAndPrint(jedis);
+        try {
+            Thread.sleep(10 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        getAndPrint(jedis);
+        return response;
+    }
+
+    private void getAndPrint(Jedis jedis) {
         String value = jedis.get(KEY);
         System.out.println(value);
-        return response;
     }
 }
