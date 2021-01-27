@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.SetParams;
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient;
 import software.amazon.awssdk.services.lambda.model.GetAccountSettingsRequest;
 import software.amazon.awssdk.services.lambda.model.GetAccountSettingsResponse;
@@ -67,7 +68,7 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
         //TODO: testing JEDIS redis client:
         Jedis jedis = new Jedis("localhost", 6379);
         jedis.auth("Redis2019!");
-        jedis.set(KEY, VALUE);
+        jedis.set(KEY, VALUE, SetParams.setParams().ex(10));
         String value = jedis.get(KEY);
         System.out.println(value);
         return response;
