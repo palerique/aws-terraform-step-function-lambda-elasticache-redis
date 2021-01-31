@@ -1,17 +1,17 @@
-resource "aws_lambda_layer_version" "generic_stuff_layer" {
-  filename = local.layer_jar_path
-  layer_name = "generic_stuff_layer"
-  compatible_runtimes = [
-    local.runtime]
-  source_code_hash = filebase64sha256(local.layer_jar_path)
-}
+//resource "aws_lambda_layer_version" "generic_stuff_layer" {
+//  filename = local.layer_jar_path
+//  layer_name = "generic_stuff_layer"
+//  compatible_runtimes = [
+//    local.runtime]
+//  source_code_hash = filebase64sha256(local.layer_jar_path)
+//}
 
 //************************************************
 //INFLUENCE_ANALYSIS_LAMBDA:
 //************************************************
 resource "aws_lambda_function" "influenceAnalysisLambda" {
   function_name = "${var.resource_prefix}-influenceAnalysisLambda"
-  handler = "index.handler"
+  handler = "br.com.palerique.influenceanalysis.lambda.Lambda"
   role = aws_iam_role.influence-analysis-role.arn
   runtime = local.runtime
 
@@ -20,8 +20,8 @@ resource "aws_lambda_function" "influenceAnalysisLambda" {
 
   timeout = 30
   memory_size = local.lambda_memory
-  layers = [
-    aws_lambda_layer_version.generic_stuff_layer.arn]
+  //  layers = [
+  //    aws_lambda_layer_version.generic_stuff_layer.arn]
 
   vpc_config {
     subnet_ids = [

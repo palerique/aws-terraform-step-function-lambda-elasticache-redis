@@ -4,11 +4,9 @@ import static br.com.palerique.influenceanalysis.layer.GenericConstants.MISSING_
 
 import java.util.Objects;
 import java.util.stream.Stream;
-import lombok.extern.log4j.Log4j2;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
-@Log4j2
 public class RedisUtil {
 
     public static final String ENV_VAR_CACHE_HOST = "CACHE_HOST";
@@ -35,7 +33,7 @@ public class RedisUtil {
         String cachePwd = System.getenv(ENV_VAR_CACHE_PWD);
 
         if (Stream.of(cachePwd).allMatch(x -> x == null || x.isEmpty())) {
-            log.error(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
+            System.err.println(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
             throw new RuntimeException(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
         }
 

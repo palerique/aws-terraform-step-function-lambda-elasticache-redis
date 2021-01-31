@@ -7,11 +7,6 @@ repositories {
     jcenter()
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
 dependencies {
     implementation platform('software.amazon.awssdk:bom:2.10.73')
     implementation platform('com.amazonaws:aws-xray-recorder-sdk-bom:2.4.0')
@@ -32,6 +27,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-api:2.13.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.13.0'
     runtimeOnly 'org.apache.logging.log4j:log4j-slf4j18-impl:2.13.0'
+    runtimeOnly 'com.amazonaws:aws-lambda-java-log4j2:1.2.0'
 
     implementation 'redis.clients:jedis:3.5.1'
 
@@ -47,3 +43,37 @@ dependencies {
     // Use JUnit Jupiter Engine for testing.
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
+
+test {
+    useJUnitPlatform()
+}
+
+task packageFat(type: Zip) {
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtimeClasspath
+    }
+    dirMode = 0755
+    fileMode = 0755
+}
+
+task packageLibs(type: Zip) {
+    into('java/lib') {
+        from configurations.runtimeClasspath
+    }
+    dirMode = 0755
+    fileMode = 0755
+}
+
+task packageSkinny(type: Zip) {
+    from compileJava
+    from processResources
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+build.dependsOn packageSkinny

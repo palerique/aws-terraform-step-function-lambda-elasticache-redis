@@ -27,10 +27,12 @@ variable "system_username" {
 
 variable "system_password" {
   description = "Password to authenticate in the REST api"
+  sensitive = true
 }
 
 variable "cache_pwd" {
   description = "Cache`s password"
+  sensitive = true
 }
 
 variable "instance_type" {

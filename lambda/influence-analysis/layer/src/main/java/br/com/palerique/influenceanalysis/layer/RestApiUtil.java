@@ -13,9 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.stream.Stream;
-import lombok.extern.log4j.Log4j2;
 
-@Log4j2
 public class RestApiUtil {
 
     public static final String ENV_VAR_SYSTEM_USERNAME = "SYSTEM_USERNAME";
@@ -31,7 +29,7 @@ public class RestApiUtil {
         String restApiAddress = System.getenv(ENV_VAR_REST_API_ADDRESS);
 
         if (Stream.of(username, pwd, restApiAddress).allMatch(x -> x == null || x.isEmpty())) {
-            log.error(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
+            System.err.println(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
             throw new RuntimeException(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
         }
 
