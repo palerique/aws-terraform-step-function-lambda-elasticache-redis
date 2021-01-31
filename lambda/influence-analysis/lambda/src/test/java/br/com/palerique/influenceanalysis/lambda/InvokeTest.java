@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 
 public class InvokeTest {
 
-    //    private static final Logger logger = LoggerFactory.getLogger(InvokeTest.class);
     Gson gson = new GsonBuilder()
             .registerTypeAdapter(SQSEvent.class, new SQSEventDeserializer())
             .setPrettyPrinting()
@@ -40,7 +39,7 @@ public class InvokeTest {
         String requestId = context.getAwsRequestId();
         Lambda handler = new Lambda();
         String result = handler.handleRequest(event, context);
-        assertTrue(result.contains("totalCodeSize"));
+        assertTrue(result.contains("numberOfViews"));
         AWSXRay.endSegment();
     }
 

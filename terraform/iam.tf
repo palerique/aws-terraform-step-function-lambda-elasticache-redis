@@ -19,7 +19,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "influence-analysis-role" {
   policy_arn = aws_iam_policy.influence-analysis-role.arn
-  role       = aws_iam_role.influence-analysis-role.name
+  role = aws_iam_role.influence-analysis-role.name
 }
 
 resource "aws_iam_policy" "influence-analysis-role" {
@@ -28,26 +28,26 @@ resource "aws_iam_policy" "influence-analysis-role" {
 
 data "aws_iam_policy_document" "influence-analysis-role" {
   statement {
-    sid       = "AllowInvokingLambdas"
-    effect    = "Allow"
+    sid = "AllowInvokingLambdas"
+    effect = "Allow"
     resources = [
       "arn:aws:lambda:us-east-1:*:function:*"]
-    actions   = [
+    actions = [
       "lambda:InvokeFunction"]
   }
 
   statement {
-    sid       = "AllowCreatingLogGroups"
-    effect    = "Allow"
+    sid = "AllowCreatingLogGroups"
+    effect = "Allow"
     resources = [
       "arn:aws:logs:us-east-1:*:*"]
-    actions   = [
+    actions = [
       "logs:CreateLogGroup"]
   }
 
   statement {
-    sid       = "AllowWritingLogs"
-    effect    = "Allow"
+    sid = "AllowWritingLogs"
+    effect = "Allow"
     resources = [
       "arn:aws:logs:us-east-1:*:log-group:/aws/lambda/*:*"]
 
@@ -58,12 +58,12 @@ data "aws_iam_policy_document" "influence-analysis-role" {
   }
 
   statement {
-    sid       = "AllowIAMPassRole"
-    effect    = "Allow"
+    sid = "AllowIAMPassRole"
+    effect = "Allow"
     resources = [
       "*"
     ]
-    actions   = [
+    actions = [
       "iam:*",
       "iam:PassRole",
       "organizations:DescribeAccount",
@@ -103,15 +103,15 @@ data "aws_iam_policy_document" "network" {
 }
 
 resource "aws_iam_policy" "network" {
-//  count  = 1
-  name   = "influence-analysis-network"
+  //  count  = 1
+  name = "influence-analysis-network"
   policy = data.aws_iam_policy_document.network.json
 }
 
 resource "aws_iam_policy_attachment" "network" {
-//  count      = 1
-  name       = "influence-analysis-network"
-  roles      = [
+  //  count      = 1
+  name = "influence-analysis-network"
+  roles = [
     aws_iam_role.influence-analysis-role.name]
   policy_arn = aws_iam_policy.network.arn
 }

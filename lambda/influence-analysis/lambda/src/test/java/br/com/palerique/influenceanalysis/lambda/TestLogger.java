@@ -1,22 +1,19 @@
 package br.com.palerique.influenceanalysis.lambda;
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
+@NoArgsConstructor
 public class TestLogger implements LambdaLogger {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestLogger.class);
-
-    public TestLogger() {
-    }
-
     public void log(String message) {
-        logger.info(message);
+        log.info(message);
     }
 
     public void log(byte[] message) {
-        logger.info(new String(message));
+        log.info(new String(message));
     }
 }
 
