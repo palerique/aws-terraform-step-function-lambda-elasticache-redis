@@ -18,14 +18,16 @@ resource "aws_lambda_function" "influenceAnalysisLambda" {
   filename = local.lambda_jar_path
   source_code_hash = filebase64sha256(local.lambda_jar_path)
 
-  timeout = 30
+  timeout = 60
   memory_size = local.lambda_memory
   //  layers = [
   //    aws_lambda_layer_version.generic_stuff_layer.arn]
 
   vpc_config {
     subnet_ids = [
-      aws_subnet.redis_subnet.id]
+      aws_subnet.influence_private_sb.id,
+      aws_subnet.influence_public_sb.id
+    ]
     security_group_ids = [
       aws_security_group.redis_sg.id]
   }

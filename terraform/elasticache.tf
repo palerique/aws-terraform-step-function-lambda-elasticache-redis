@@ -4,7 +4,7 @@ resource "aws_security_group" "redis_sg" {
 
   ingress {
     cidr_blocks = [
-      aws_vpc.influence-vpc.cidr_block]
+      var.cidrs.private]
     from_port = 6379
     to_port = 6379
     protocol = "tcp"
@@ -15,21 +15,8 @@ resource "aws_security_group" "redis_sg" {
     to_port = 0
     protocol = "-1"
     cidr_blocks = [
-      "0.0.0.0/0"]
+      var.cidrs.private]
   }
-}
-
-resource "aws_subnet" "redis_subnet" {
-  vpc_id = aws_vpc.influence-vpc.id
-  cidr_block = aws_vpc.influence-vpc.cidr_block
-  availability_zone = "${var.aws_region}a"
-}
-
-# Create ElastiCache Redis subnet group
-resource "aws_elasticache_subnet_group" "default" {
-  name = "subnet-group-redis"
-  subnet_ids = [
-    aws_subnet.redis_subnet.id]
 }
 
 # Create ElastiCache Redis cluster

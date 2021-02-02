@@ -33,8 +33,10 @@ public class RestApiUtil {
             throw new RuntimeException(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
         }
 
+        System.out.println("trying to reach this address: " + restApiAddress);
+
         HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
+                .connectTimeout(Duration.ofSeconds(30))
                 .build();
 
         HttpRequest request = HttpRequest.newBuilder()
