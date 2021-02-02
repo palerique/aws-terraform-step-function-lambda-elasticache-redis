@@ -30,15 +30,15 @@ public class RedisUtil {
         int cachePort = Integer.parseInt(
                 Objects.requireNonNullElse(System.getenv(ENV_VAR_CACHE_PORT),
                         "6379"));
-        String cachePwd = System.getenv(ENV_VAR_CACHE_PWD);
+//        String cachePwd = System.getenv(ENV_VAR_CACHE_PWD);
 
-        if (Stream.of(cachePwd).allMatch(x -> x == null || x.isEmpty())) {
-            System.err.println(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
-            throw new RuntimeException(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
-        }
+//        if (Stream.of(cachePwd).allMatch(x -> x == null || x.isEmpty())) {
+//            System.err.println(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
+//            throw new RuntimeException(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
+//        }
 
         Jedis jedis = new Jedis(cacheHost, cachePort);
-        jedis.auth(cachePwd);
+//        jedis.auth(cachePwd);
         return jedis;
     }
 
