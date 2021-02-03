@@ -1,9 +1,4 @@
 # Configure the AWS Provider
-//provider "aws" {
-//  access_key = var.access_key
-//  secret_key = var.secret_key
-//  region = var.region
-//}
 
 # Create VPC
 resource "aws_vpc" "influence-analysis-vpc" {
@@ -16,17 +11,6 @@ resource "aws_vpc" "influence-analysis-vpc" {
     Name = var.vpc_name
   }
 }
-
-# Create Management subnet
-//resource "aws_subnet" "mgmt-subnet" {
-//  vpc_id = aws_vpc.influence-analysis-vpc.id
-//  cidr_block = var.mgmt_subnet_cidr_block
-//  availability_zone = var.availability_zone
-//  map_public_ip_on_launch = false
-//  tags = {
-//    Name = "mgmt-subnet"
-//  }
-//}
 
 # Create Untrust subnet
 resource "aws_subnet" "untrust-subnet" {
@@ -50,41 +34,6 @@ resource "aws_subnet" "trust-subnet" {
   }
 }
 
-/* */
-# Create VPC Internet Gateway
-//resource "aws_internet_gateway" "influence-analysis-igw" {
-//  vpc_id = aws_vpc.influence-analysis-vpc.id
-//  tags = {
-//    Name = "influence-analysis-igw"
-//  }
-//}
-
-//# Create Management route table
-//resource "aws_route_table" "mgmt-routetable" {
-//  vpc_id = aws_vpc.influence-analysis-vpc.id
-//  tags = {
-//    Name = "mgmt-routetable"
-//  }
-//}
-//
-///* */
-//# Create default route for Management route table
-//resource "aws_route" "mgmt-default-route" {
-//  route_table_id = aws_route_table.mgmt-routetable.id
-//  destination_cidr_block = "0.0.0.0/0"
-//  gateway_id = aws_internet_gateway.influence-analysis-igw.id
-//  depends_on = [
-//    "aws_route_table.mgmt-routetable",
-//    "aws_internet_gateway.influence-analysis-igw"
-//  ]
-//}
-//
-//# Associate Management route table to Management subnet
-//resource "aws_route_table_association" "mgmt-routetable-association" {
-//  subnet_id = aws_subnet.mgmt-subnet.id
-//  route_table_id = aws_route_table.mgmt-routetable.id
-//}
-
 # Create Untrust route table
 resource "aws_route_table" "untrust-routetable" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
@@ -93,7 +42,6 @@ resource "aws_route_table" "untrust-routetable" {
   }
 }
 
-/* */
 # Create default route for Untrust route table
 resource "aws_route" "untrust-default-route" {
   route_table_id = aws_route_table.untrust-routetable.id
@@ -180,24 +128,6 @@ resource "aws_security_group" "default-security-gp" {
   }
 }
 
-//# Create an endpoint for S3 bucket
-///*  Uncomment to enable */
-//resource "aws_vpc_endpoint" "private-s3" {
-//  vpc_id = aws_vpc.influence-analysis-vpc.id
-//  service_name = "com.amazonaws.us-east-2.s3"
-//  route_table_ids = [
-//    aws_route_table.mgmt-routetable.id
-//    #"${aws_route_table.trust-routetable.id}"
-//  ]
-//}
-
-# Create a VPC NAT Gateway
-# We need to create a public subnet for the NAT gateway to reside in
-# We need to create an Internet Gateway for the NAT gateway to send internet traffic out
-# The NAT gateway also requires an EIP
-# We are adding a default route to the Nat route table to route traffic through Internet Gateway
-# We are adding a default route to the Management route table to route internet traffic through NAT GW
-///* Uncomment to enable
 # Begin VPC NAT Gateway config
 resource "aws_internet_gateway" "nat-igw" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
@@ -247,14 +177,6 @@ resource "aws_nat_gateway" "gw" {
     aws_internet_gateway.nat-igw
   ]
 }
-
-//resource "aws_route" "gw-route" {
-//  route_table_id = aws_route_table.mgmt-routetable.id
-//  destination_cidr_block = "0.0.0.0/0"
-//  nat_gateway_id = aws_nat_gateway.gw.id
-//}
-# End VPC NAT Gateway config
-//*/
 
 ############### Elasticache Redis
 # Create ElastiCache Redis security group
@@ -312,13 +234,6 @@ data "aws_iam_policy_document" "assume_role" {
     }
   }
 }
-
-//# Create Lambda function
-//resource "null_resource" "lambda_function" {
-//  provisioner "local-exec" {
-//    command = "pwd"
-//  }
-//}
 
 ############### Lambda Role
 resource "aws_iam_role" "influence-analysis-role" {
@@ -403,11 +318,6 @@ data "aws_iam_policy_document" "influence-analysis-role" {
   }
 }
 
-//resource "aws_iam_role" "lambda-vpc-role" {
-//  name               = var.function_name
-//  assume_role_policy = data.aws_iam_policy_document.assume_role.json
-//}
-
 # Attach an additional policy to Lambda function IAM role required for the VPC config
 data "aws_iam_policy_document" "network" {
   statement {
@@ -484,10 +394,6 @@ resource "aws_lambda_function" "influenceAnalysisLambda" {
 output "vpc-VPC-ID" {
   value = aws_vpc.influence-analysis-vpc.id
 }
-
-//output "subnet-Management-Subnet-ID" {
-//  value = aws_subnet.mgmt-subnet.id
-//}
 
 output "vpc-Default-Security-Group-ID" {
   value = aws_security_group.default-security-gp.id
