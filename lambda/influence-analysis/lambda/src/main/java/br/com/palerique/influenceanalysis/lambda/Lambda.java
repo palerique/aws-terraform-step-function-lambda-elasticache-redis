@@ -17,6 +17,14 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
     public String handleRequest(SQSEvent event, Context context) {
         LambdaLogger logger = context.getLogger();
         String response = "";
+
+        try {
+            logger.log("response from the google call: " + doHttpRequest("", "", "http://www.google.com"));
+        } catch (Exception e) {
+            logger.log("some exception was thrown when calling http: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         try {
             response = doHttpRequest();
             //            String responseFromRestApi = "{"
@@ -30,7 +38,7 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
             logger.log("response from the rest api: " + response);
         } catch (Exception e) {
             logger.log("some exception was thrown when calling http: " + e.getMessage());
-            e.printStackTrace();
+            //            e.printStackTrace();
         }
 
         try {
@@ -38,7 +46,7 @@ public class Lambda implements RequestHandler<SQSEvent, String> {
             logger.log("response from REDIS: " + getAndPrint(KEY));
         } catch (Exception e) {
             logger.log("some exception was thrown when reaching REDIS " + e.getMessage());
-            e.printStackTrace();
+            //            e.printStackTrace();
         }
 
         logger.log("Lambda is returning " + response);

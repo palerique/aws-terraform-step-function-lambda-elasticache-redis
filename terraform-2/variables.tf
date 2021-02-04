@@ -45,8 +45,8 @@ variable "mgmt_subnet_cidr_block" {
   default = "10.88.0.0/24"
 }
 
-# Untrust subnet configuration
-variable "untrust_subnet_cidr_block" {
+# Untrusted subnet configuration
+variable "untrusted_subnet_cidr_block" {
   default = "10.88.1.0/24"
 }
 
@@ -114,7 +114,7 @@ variable "influence_analysis_mgmt_private_ip" {
   default = "10.88.0.200"
 }
 
-variable "influence_analysis_untrust_private_ip" {
+variable "influence_analysis_untrusted_private_ip" {
   default = "10.88.1.210"
 }
 

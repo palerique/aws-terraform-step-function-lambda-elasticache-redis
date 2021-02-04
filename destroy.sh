@@ -10,7 +10,7 @@
 #popd || exit 1
 
 
-pushd terraform-2 || exit 1
+pushd terraform-3 || exit 1
 terraform destroy --auto-approve \
   -var cache_pwd=Redis2019! \
   -var system_password=admin \

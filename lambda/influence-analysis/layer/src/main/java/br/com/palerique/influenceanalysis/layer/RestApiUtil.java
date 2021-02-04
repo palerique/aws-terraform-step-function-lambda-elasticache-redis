@@ -28,6 +28,11 @@ public class RestApiUtil {
         String pwd = System.getenv(ENV_VAR_SYSTEM_PWD);
         String restApiAddress = System.getenv(ENV_VAR_REST_API_ADDRESS);
 
+        return doHttpRequest(username, pwd, restApiAddress);
+    }
+
+    public static String doHttpRequest(String username, String pwd, String restApiAddress)
+            throws IOException, InterruptedException {
         if (Stream.of(username, pwd, restApiAddress).allMatch(x -> x == null || x.isEmpty())) {
             System.err.println(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
             throw new RuntimeException(MISSING_REQUIRED_ENVIRONMENT_VARIABLES);
@@ -36,7 +41,7 @@ public class RestApiUtil {
         System.out.println("trying to reach this address: " + restApiAddress);
 
         HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(30))
+                .connectTimeout(Duration.ofSeconds(60))
                 .build();
 
         HttpRequest request = HttpRequest.newBuilder()

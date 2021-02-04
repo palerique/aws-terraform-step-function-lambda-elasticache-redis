@@ -12,67 +12,69 @@ resource "aws_vpc" "influence-analysis-vpc" {
   }
 }
 
-# Create Untrust subnet
-resource "aws_subnet" "untrust-subnet" {
+# Create Untrusted subnet
+resource "aws_subnet" "untrusted-subnet" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
-  cidr_block = var.untrust_subnet_cidr_block
+  cidr_block = var.untrusted_subnet_cidr_block
   availability_zone = var.availability_zone
   map_public_ip_on_launch = true
   tags = {
-    Name = "untrust-subnet"
+    Name = "untrusted-subnet"
   }
 }
 
-# Create Trust subnet
-resource "aws_subnet" "trust-subnet" {
+# Create Trusted subnet
+resource "aws_subnet" "trusted-subnet" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
   cidr_block = var.trust_subnet_cidr_block
   availability_zone = var.availability_zone
   map_public_ip_on_launch = false
   tags = {
-    Name = "trust-subnet"
+    Name = "trusted-subnet"
   }
 }
 
-# Create Untrust route table
-resource "aws_route_table" "untrust-routetable" {
+# Create Untrusted route table
+resource "aws_route_table" "untrusted-route-table" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
   tags = {
-    Name = "untrust-routetable"
+    Name = "untrusted-route-table"
   }
 }
 
-# Create default route for Untrust route table
-resource "aws_route" "untrust-default-route" {
-  route_table_id = aws_route_table.untrust-routetable.id
+# Create default route for Untrusted route table
+resource "aws_route" "untrusted-default-route" {
+  route_table_id = aws_route_table.untrusted-route-table.id
   destination_cidr_block = "0.0.0.0/0"
   //  gateway_id = aws_internet_gateway.influence-analysis-igw.id
-  gateway_id = aws_internet_gateway.nat-igw.id
+  //  gateway_id = aws_internet_gateway.nat-igw.id
+  //TODO:
+  gateway_id = aws_nat_gateway.gw.id
   depends_on = [
-    aws_route_table.untrust-routetable,
+    aws_route_table.untrusted-route-table,
     //    aws_internet_gateway.influence-analysis-igw
     aws_internet_gateway.nat-igw
   ]
 }
 
-# Associate Untrust route table to Untrust subnet
-resource "aws_route_table_association" "untrust-routetable-association" {
-  subnet_id = aws_subnet.untrust-subnet.id
-  route_table_id = aws_route_table.untrust-routetable.id
+# Associate Untrusted route table to Untrusted subnet
+resource "aws_route_table_association" "untrusted-route-table-association" {
+  subnet_id = aws_subnet.untrusted-subnet.id
+  route_table_id = aws_route_table.untrusted-route-table.id
 }
 
-# Create Trust route table
-resource "aws_route_table" "trust-routetable" {
+# Create Trusted route table
+resource "aws_route_table" "trusted-route-table" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
   tags = {
-    Name = "trust-routetable"
+    Name = "trusted-route-table"
   }
 }
 
-# Associate Trust route table to Trust subnet
-resource "aws_route_table_association" "trust-routetable-association" {
-  subnet_id = aws_subnet.trust-subnet.id
-  route_table_id = aws_route_table.trust-routetable.id
+# Associate Trusted route table to Trusted subnet
+resource "aws_route_table_association" "trusted-route-table-association" {
+  subnet_id = aws_subnet.trusted-subnet.id
+  route_table_id = aws_route_table.trusted-route-table.id
 }
 
 # Create default VPC Network ACL
@@ -96,8 +98,8 @@ resource "aws_network_acl" "default-network-acl" {
   }
   subnet_ids = [
     //    aws_subnet.mgmt-subnet.id,
-    aws_subnet.untrust-subnet.id,
-    aws_subnet.trust-subnet.id
+    aws_subnet.untrusted-subnet.id,
+    aws_subnet.trusted-subnet.id
   ]
   tags = {
     Name = "default ACL"
@@ -145,25 +147,25 @@ resource "aws_subnet" "nat-subnet" {
   }
 }
 
-resource "aws_route_table" "nat-routetable" {
+resource "aws_route_table" "nat-route-table" {
   vpc_id = aws_vpc.influence-analysis-vpc.id
   tags = {
-    Name = "nat-routetable"
+    Name = "nat-route-table"
   }
 }
 
 resource "aws_route" "nat-route" {
-  route_table_id = aws_route_table.nat-routetable.id
+  route_table_id = aws_route_table.nat-route-table.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id = aws_internet_gateway.nat-igw.id
   depends_on = [
-    aws_route_table.nat-routetable
+    aws_route_table.nat-route-table
   ]
 }
 
-resource "aws_route_table_association" "nat-routetable-association" {
+resource "aws_route_table_association" "nat-route-table-association" {
   subnet_id = aws_subnet.nat-subnet.id
-  route_table_id = aws_route_table.nat-routetable.id
+  route_table_id = aws_route_table.nat-route-table.id
 }
 
 resource "aws_eip" "nat-eip" {
@@ -189,6 +191,7 @@ resource "aws_security_group" "redis_sg" {
     from_port = 6379
     to_port = 6379
     protocol = "tcp"
+    description = "elasticache ingress"
   }
 
   egress {
@@ -197,6 +200,7 @@ resource "aws_security_group" "redis_sg" {
     protocol = "-1"
     cidr_blocks = [
       "0.0.0.0/0"]
+    description = "elasticache egress"
   }
 }
 
@@ -204,7 +208,7 @@ resource "aws_security_group" "redis_sg" {
 resource "aws_elasticache_subnet_group" "default" {
   name = "subnet-group-redis"
   subnet_ids = [
-    aws_subnet.trust-subnet.id]
+    aws_subnet.trusted-subnet.id]
 }
 
 # Create ElastiCache Redis cluster
@@ -350,8 +354,8 @@ resource "aws_iam_policy_attachment" "network" {
 }
 
 ############### Lambda
-resource "aws_lambda_function" "influenceAnalysisLambda" {
-  function_name = "${var.resource_prefix}-influenceAnalysisLambda"
+resource "aws_lambda_function" "influence-analysis-lambda" {
+  function_name = "${var.resource_prefix}-influence-analysis-lambda"
   handler = "br.com.palerique.influenceanalysis.lambda.Lambda"
   role = aws_iam_role.influence-analysis-role.arn
   runtime = local.runtime
@@ -366,8 +370,8 @@ resource "aws_lambda_function" "influenceAnalysisLambda" {
 
   vpc_config {
     subnet_ids = [
-      aws_subnet.trust-subnet.id,
-      aws_subnet.untrust-subnet.id,
+      aws_subnet.trusted-subnet.id,
+      aws_subnet.untrusted-subnet.id,
       aws_subnet.nat-subnet.id
     ]
     security_group_ids = [
