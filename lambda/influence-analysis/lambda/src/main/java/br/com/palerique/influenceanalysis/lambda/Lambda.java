@@ -6,50 +6,72 @@ import static br.com.palerique.influenceanalysis.layer.RestApiUtil.doHttpRequest
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Lambda implements RequestHandler<SQSEvent, String> {
+public class Lambda implements RequestStreamHandler {
 
     public static final String KEY = "redis-key";
+    public static final String X_CUSTOM_HEADER = "x-custom-header";
+
+    public static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
-    public String handleRequest(SQSEvent event, Context context) {
+    public void handleRequest(
+            InputStream inputStream, OutputStream outputStream, Context context)
+            throws IOException {
+
         LambdaLogger logger = context.getLogger();
-        String response = "";
+        logger.log("Handling the request");
 
-        try {
-            logger.log("response from the google call: " + doHttpRequest("", "", "http://www.google.com"));
-        } catch (Exception e) {
-            logger.log("some exception was thrown when calling http: " + e.getMessage());
-            e.printStackTrace();
-        }
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
+        InfluenceAnalysisResponse response;
         try {
-            response = doHttpRequest();
-            //            String responseFromRestApi = "{"
-            //                    + "  \"numberOfViews\" : 7,"
-            //                    + "  \"totalJiveUsers\" : 2,"
-            //                    + "  \"shareCount\" : 0,"
-            //                    + "  \"commentCount\" : 0,"
-            //                    + "  \"likeCount\" : 0,"
-            //                    + "  \"influenceScore\" : 1.75"
-            //                    + "}";
-            logger.log("response from the rest api: " + response);
-        } catch (Exception e) {
-            logger.log("some exception was thrown when calling http: " + e.getMessage());
-            //            e.printStackTrace();
-        }
+            HashMap event = gson.fromJson(reader, HashMap.class);
+            logger.log("Event received: " + event);
 
-        try {
-            save(KEY, response);
+            InfluenceAnalysis influenceAnalysis = gson.fromJson(doHttpRequest(), InfluenceAnalysis.class);
+            logger.log("response from the rest api: " + influenceAnalysis);
+
+            Map<String, String> headers = new HashMap<>();
+            headers.put(X_CUSTOM_HEADER, "my custom header value");
+
+            response = InfluenceAnalysisResponse.builder()
+                    .message("Some message to return")
+                    .body(influenceAnalysis)
+                    .headers(headers)
+                    .statusCode(200)
+                    .build();
+
+            save(KEY, influenceAnalysis);
+
             logger.log("response from REDIS: " + getAndPrint(KEY));
-        } catch (Exception e) {
-            logger.log("some exception was thrown when reaching REDIS " + e.getMessage());
-            //            e.printStackTrace();
+
+        } catch (InterruptedException pex) {
+            logger.log("some exception was thrown when calling http: " + pex.getMessage());
+            response = InfluenceAnalysisResponse.builder()
+                    .message("Error")
+                    .statusCode(400)
+                    .exception(pex)
+                    .build();
         }
 
-        logger.log("Lambda is returning " + response);
-        return response;
+        String json = gson.toJson(response);
+        logger.log("lambda is responding with:\n" + json);
+        OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        writer.write(json);
+        writer.close();
+        logger.log("lambda finished");
     }
 }

@@ -9,6 +9,8 @@ import com.amazonaws.xray.AWSXRayRecorderBuilder;
 import com.amazonaws.xray.strategy.sampling.NoSamplingStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,7 +32,7 @@ public class InvokeTest {
     }
 
     @Test
-    void invokeTest() {
+    void invokeTest() throws IOException {
         AWSXRay.beginSegment("blank-java-test");
         String path = "src/test/resources/event.json";
         String eventString = loadJsonFile(path);
@@ -38,8 +40,14 @@ public class InvokeTest {
         Context context = new TestContext();
         String requestId = context.getAwsRequestId();
         Lambda handler = new Lambda();
-        String result = handler.handleRequest(event, context);
-        assertTrue(result.contains("numberOfViews"));
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        handler.handleRequest(
+                new ByteArrayInputStream(eventString.getBytes(StandardCharsets.UTF_8)),
+                byteArrayOutputStream,
+                context
+        );
+        String finalString = byteArrayOutputStream.toString();
+        assertTrue(finalString.contains("numberOfViews"));
         AWSXRay.endSegment();
     }
 
