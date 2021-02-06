@@ -36,11 +36,10 @@ public class InvokeTest {
         AWSXRay.beginSegment("blank-java-test");
         String path = "src/test/resources/event.json";
         String eventString = loadJsonFile(path);
-        SQSEvent event = gson.fromJson(eventString, SQSEvent.class);
         Context context = new TestContext();
-        String requestId = context.getAwsRequestId();
         Lambda handler = new Lambda();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        //TODO: mock the redis/http call!
         handler.handleRequest(
                 new ByteArrayInputStream(eventString.getBytes(StandardCharsets.UTF_8)),
                 byteArrayOutputStream,
